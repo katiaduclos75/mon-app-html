@@ -1,0 +1,735 @@
+<!DOCTYPE html><html lang="fr"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>💰 Le Défi Budget</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#e3f2fd 0%,#f3e5f5 50%,#fff3e0 100%);min-height:100vh;min-height:100dvh;color:#37474f;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+  #app{max-width:480px;margin:0 auto;padding:16px;padding-bottom:calc(env(safe-area-inset-bottom,0px)+20px)}
+
+  /* ── MENU ── */
+  .menu-title{text-align:center;margin:20px 0 8px}
+  .menu-title h1{font-size:2em;font-weight:900;background:linear-gradient(135deg,#ff9800,#e91e63,#9c27b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .menu-subtitle{text-align:center;color:#78909c;font-weight:600;font-size:.95em;margin-bottom:24px}
+  .diff-card{background:white;border-radius:20px;padding:22px;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);cursor:pointer;transition:transform .2s,box-shadow .2s;border-left:5px solid}
+  .diff-card:active{transform:scale(.97)}
+  .diff-card h2{font-size:1.15em;font-weight:800;margin-bottom:4px}
+  .diff-card p{font-size:.85em;color:#78909c;font-weight:600;line-height:1.4}
+  .diff-card .diff-badge{display:inline-block;font-size:.72em;font-weight:700;padding:3px 10px;border-radius:10px;margin-top:8px;text-transform:uppercase;letter-spacing:.5px}
+  .card-easy{border-color:#4caf50}.card-easy .diff-badge{background:#e8f5e9;color:#2e7d32}
+  .card-medium{border-color:#ff9800}.card-medium .diff-badge{background:#fff3e0;color:#e65100}
+  .card-hard{border-color:#e91e63}.card-hard .diff-badge{background:#fce4ec;color:#c62828}
+  .rules-box{background:white;border-radius:16px;padding:20px;margin-top:10px;box-shadow:0 2px 12px rgba(0,0,0,.06);font-size:.88em;color:#546e7a;line-height:1.6}
+  .rules-box h3{font-size:1em;font-weight:800;color:#37474f;margin-bottom:8px}
+
+  /* ── GAME HEADER ── */
+  .game-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}
+  .budget-box{flex:1}
+  .budget-label{font-size:.72em;font-weight:700;color:#78909c;text-transform:uppercase;letter-spacing:.5px}
+  .budget-amount{font-size:1.4em;font-weight:900;transition:color .3s}
+  .budget-bar{height:8px;background:#e0e0e0;border-radius:4px;margin-top:4px;overflow:hidden}
+  .budget-fill{height:100%;border-radius:4px;transition:width .6s ease,background .3s}
+  .day-box{text-align:right}
+  .day-label{font-size:.72em;font-weight:700;color:#78909c;text-transform:uppercase}
+  .day-number{font-size:1.2em;font-weight:900}
+  .streak-badge{font-size:.75em;font-weight:700;padding:2px 8px;border-radius:8px;background:#fff3e0;color:#e65100;margin-top:3px;display:inline-block}
+
+  .dots-row{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap;justify-content:center}
+  .dot{width:14px;height:14px;border-radius:50%;background:#e0e0e0;transition:all .3s}
+  .dot.correct{background:#66bb6a}.dot.wrong{background:#ef5350}.dot.current{background:#42a5f5;animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+
+  /* ── STORE CARD ── */
+  .store-card{border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;color:white;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.15)}
+  .store-emoji{font-size:2.6em;margin-bottom:6px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+  .store-name{font-size:1.2em;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .store-item{font-size:.95em;font-weight:600;opacity:.9;margin-top:4px}
+  .store-price{font-size:2em;font-weight:900;margin-top:10px;text-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .store-payment{font-size:.9em;font-weight:700;margin-top:8px;background:rgba(255,255,255,.2);display:inline-block;padding:6px 16px;border-radius:12px;backdrop-filter:blur(4px)}
+
+  .question-text{text-align:center;font-size:1.05em;font-weight:800;margin-bottom:14px;color:#37474f}
+
+  /* ── COMPOSER ── */
+  .composer-section{background:white;border-radius:20px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+  .denom-label{font-size:.7em;font-weight:700;color:#90a4ae;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;margin-top:10px}
+  .denom-label:first-child{margin-top:0}
+  .denom-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .denom-btn{border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;transition:transform .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center}
+  .denom-btn:active{transform:scale(.9)}
+
+  .coin-btn{width:52px;height:52px;border-radius:50%;font-size:.78em;box-shadow:0 3px 8px rgba(0,0,0,.15),inset 0 -2px 4px rgba(0,0,0,.1)}
+  .coin-copper{background:linear-gradient(135deg,#d4a373,#bc8a5f);color:#5d3a1a}
+  .coin-gold{background:linear-gradient(135deg,#ffd54f,#ffb300);color:#5d4037}
+  .coin-bimetal{background:linear-gradient(135deg,#ffd54f 40%,#bdbdbd 40%);color:#37474f}
+
+  .bill-btn{min-width:70px;height:46px;border-radius:10px;font-size:.85em;padding:0 12px;box-shadow:0 3px 8px rgba(0,0,0,.12)}
+  .bill-5{background:linear-gradient(135deg,#bdbdbd,#9e9e9e);color:white}
+  .bill-10{background:linear-gradient(135deg,#ef9a9a,#e57373);color:white}
+  .bill-20{background:linear-gradient(135deg,#90caf9,#64b5f6);color:white}
+  .bill-50{background:linear-gradient(135deg,#ffcc80,#ffa726);color:white}
+  .bill-100{background:linear-gradient(135deg,#a5d6a7,#66bb6a);color:white}
+  .bill-200{background:linear-gradient(135deg,#fff59d,#fdd835);color:#5d4037}
+
+  /* ── TRAY ── */
+  .tray{min-height:44px;background:#f5f5f5;border-radius:12px;padding:8px;margin:12px 0;display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:center}
+  .tray-empty{color:#bdbdbd;font-weight:600;font-size:.85em;width:100%;text-align:center}
+  .tray-item{font-size:.7em;font-weight:700;padding:4px 8px;border-radius:8px;cursor:pointer;transition:transform .15s;animation:pop .25s ease}
+  .tray-item:active{transform:scale(.85)}
+  @keyframes pop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+  .tray-coin{background:#fff3e0;color:#e65100;border:1px solid #ffe0b2}
+  .tray-bill{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9}
+
+  .total-display{text-align:center;margin:10px 0}
+  .total-label{font-size:.8em;font-weight:700;color:#78909c}
+  .total-amount{font-size:1.8em;font-weight:900;transition:color .3s}
+  .total-ok{color:#66bb6a}
+  .total-over{color:#e53935}
+  .total-partial{color:#ff9800}
+  .total-zero{color:#bdbdbd}
+
+  .composer-buttons{display:flex;gap:10px;margin-top:12px}
+  .btn{flex:1;border:none;padding:14px;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:1em;cursor:pointer;transition:transform .15s,opacity .15s;-webkit-tap-highlight-color:transparent}
+  .btn:active{transform:scale(.96)}
+  .btn-clear{background:#f5f5f5;color:#78909c}
+  .btn-validate{background:linear-gradient(135deg,#66bb6a,#43a047);color:white;box-shadow:0 4px 12px rgba(76,175,80,.3)}
+  .btn-validate:disabled{opacity:.4;cursor:default;transform:none}
+  .btn-validate.shake{animation:shake .4s ease}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  .attempts-info{text-align:center;font-size:.8em;font-weight:600;color:#90a4ae;margin-top:8px}
+
+  /* ── FEEDBACK ── */
+  .feedback-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .3s}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .feedback-card{background:white;border-radius:24px;padding:30px 24px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .4s ease}
+  @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .fb-emoji{font-size:3em;margin-bottom:8px}
+  .fb-title{font-size:1.3em;font-weight:900;margin-bottom:6px}
+  .fb-calc{font-size:.95em;font-weight:600;color:#546e7a;background:#f5f5f5;padding:10px 16px;border-radius:12px;margin:12px 0;line-height:1.6}
+  .fb-decomp{font-size:.85em;font-weight:600;color:#78909c;margin-bottom:4px}
+  .fb-penalty{font-size:.88em;font-weight:700;color:#e53935;margin:8px 0}
+  .fb-budget{font-size:.85em;font-weight:600;color:#78909c;margin-bottom:12px}
+  .btn-next{background:linear-gradient(135deg,#42a5f5,#1e88e5);color:white;border:none;padding:14px 40px;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:1em;cursor:pointer;box-shadow:0 4px 12px rgba(33,150,243,.3);-webkit-tap-highlight-color:transparent}
+  .btn-next:active{transform:scale(.96)}
+
+  /* ── RESULT ── */
+  .result-screen{text-align:center;padding-top:30px}
+  .result-emoji{font-size:4em;margin-bottom:10px}
+  .result-title{font-size:1.6em;font-weight:900;margin-bottom:6px}
+  .result-subtitle{font-size:1em;font-weight:600;color:#78909c;margin-bottom:24px}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+  .stat-card{background:white;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+  .stat-val{font-size:1.6em;font-weight:900}
+  .stat-lbl{font-size:.78em;font-weight:600;color:#90a4ae;margin-top:2px}
+  .btn-replay{background:linear-gradient(135deg,#ff9800,#f57c00);color:white;border:none;padding:16px 40px;border-radius:16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.1em;cursor:pointer;box-shadow:0 4px 16px rgba(255,152,0,.3);margin-bottom:12px;-webkit-tap-highlight-color:transparent}
+  .btn-replay:active{transform:scale(.96)}
+  .btn-menu{background:#f5f5f5;color:#546e7a;border:none;padding:12px 30px;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.95em;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+  .confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden}
+  @keyframes confetti-fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  @media(max-width:380px){
+    .coin-btn{width:44px;height:44px;font-size:.7em}
+    .bill-btn{min-width:58px;height:40px;font-size:.78em;padding:0 8px}
+    .store-price{font-size:1.6em}
+    .total-amount{font-size:1.5em}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="confetti-container" id="confetti"></div>
+<script>
+// ════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════
+const POOLS = {
+  easy: [
+    ["🥖","Boulangerie","Baguette tradition",100,200],
+    ["🥖","Boulangerie","3 croissants",250,400],
+    ["🥖","Boulangerie","Brioche dorée",300,500],
+    ["🥖","Boulangerie","Tarte aux pommes",750,1200],
+    ["🥖","Boulangerie","Gâteau anniversaire",1500,2500],
+    ["☕","Café du Coin","Espresso",100,200],
+    ["☕","Café du Coin","Café crème",200,350],
+    ["☕","Café du Coin","Thé et gâteau",400,600],
+    ["☕","Café du Coin","Chocolat chaud",250,400],
+    ["🛒","Supermarché","Bouteille de lait",100,200],
+    ["🛒","Supermarché","Beurre et œufs",300,500],
+    ["🛒","Supermarché","Pack de 6 yaourts",250,400],
+    ["🛒","Supermarché","Shampooing",350,550],
+    ["🛒","Supermarché","Lessive",600,900],
+    ["🛒","Supermarché","Fruits de saison",300,550],
+    ["🛒","Supermarché","Poulet rôti",750,1100],
+    ["🛒","Supermarché","Courses express",1500,2500],
+    ["💊","Pharmacie","Paracétamol",200,400],
+    ["💊","Pharmacie","Dentifrice",250,400],
+    ["💊","Pharmacie","Crème hydratante",550,800],
+    ["🍎","Marché","Tomates 1kg",200,350],
+    ["🍎","Marché","Sac de pommes",250,400],
+    ["🍎","Marché","Œufs x6",200,350],
+    ["🥩","Boucherie","4 steaks hachés",650,1000],
+    ["🥩","Boucherie","Rôti de porc",850,1200],
+    ["🥩","Boucherie","Jambon tranché",350,550],
+    ["🍕","Pizzeria","Pizza margherita",950,1300],
+    ["🍕","Pizzeria","Menu du midi",1100,1500],
+    ["🎬","Cinéma","Place de cinéma",900,1250],
+    ["🎬","Cinéma","Pop-corn + boisson",450,700],
+    ["📚","Librairie","Magazine",350,600],
+    ["📚","Librairie","Roman de poche",700,1000],
+    ["🌸","Fleuriste","Bouquet de roses",1000,1800],
+    ["🌸","Fleuriste","Plante verte",500,900],
+  ],
+  medium: [
+    ["🥖","Boulangerie","Baguette + éclair",265,445],
+    ["🥖","Boulangerie","Flan pâtissier",285,435],
+    ["🥖","Boulangerie","Galette des rois",1295,1895],
+    ["☕","Café du Coin","Petit-déj complet",625,895],
+    ["☕","Café du Coin","Formule déjeuner",1080,1490],
+    ["🛒","Supermarché","Courses express",1645,2485],
+    ["🛒","Supermarché","Produits ménagers",1135,1790],
+    ["🛒","Supermarché","Rayon frais",585,985],
+    ["🛒","Supermarché","Courses du week-end",2845,4295],
+    ["🛒","Supermarché","Conserves et surgelés",1290,1890],
+    ["💊","Pharmacie","Vitamines + sirop",940,1540],
+    ["💊","Pharmacie","Médicaments",675,1195],
+    ["💊","Pharmacie","Crème et pansements",485,895],
+    ["📚","Librairie","BD collector",1295,1895],
+    ["📚","Librairie","Roman policier",830,1290],
+    ["📚","Librairie","Cahiers et stylos",535,895],
+    ["🍕","Restaurant","Plat du jour + café",1145,1690],
+    ["🍕","Restaurant","Menu complet",1480,1980],
+    ["🎬","Cinéma","2 places",1860,2460],
+    ["🎬","Cinéma","Place tarif réduit",690,990],
+    ["👕","Vêtements","T-shirt basique",995,1595],
+    ["👕","Vêtements","Chaussettes x3",480,880],
+    ["👕","Vêtements","Pull en solde",1490,2490],
+    ["👟","Sport","Ballon de foot",1235,1795],
+    ["👟","Sport","Gourde isotherme",890,1390],
+    ["⛽","Station-service","Plein d'essence",3565,5490],
+    ["⛽","Station-service","Lave-glace + huile",985,1585],
+    ["🌸","Fleuriste","Bouquet mixte",1475,2290],
+    ["🍎","Marché","Panier garni",1260,1890],
+    ["🥩","Boucherie","Côtes d'agneau",1345,1995],
+    ["🥩","Boucherie","Saucisses barbecue",875,1475],
+  ],
+  hard: [
+    ["📱","Électroménager","Machine à laver",29990,39990],
+    ["📱","Électroménager","Aspirateur robot",14990,22990],
+    ["📱","Électroménager","Micro-ondes",6995,9995],
+    ["📱","Électroménager","Fer à repasser",3490,5990],
+    ["👕","Boutique Mode","Manteau d'hiver",17990,28990],
+    ["👕","Boutique Mode","Chaussures cuir",8990,15990],
+    ["👕","Boutique Mode","Costume/Robe",14990,24990],
+    ["🔨","Bricolage","Peinture + rouleaux",5745,9995],
+    ["🔨","Bricolage","Perceuse sans fil",12980,26980],
+    ["🔨","Bricolage","Lot de carrelage",8530,17990],
+    ["⛽","Station-service","Plein camionnette",7570,11990],
+    ["⛽","Station-service","2 pneus hiver",12840,19990],
+    ["🛒","Hypermarché","Courses du mois",15683,28990],
+    ["🛒","Hypermarché","Provisions fête",6735,12990],
+    ["💻","Informatique","Tablette tactile",22999,37999],
+    ["💻","Informatique","Imprimante laser",11990,19990],
+    ["💻","Informatique","Casque audio",6995,12995],
+    ["💻","Informatique","Clavier + souris",3785,6990],
+    ["👟","Sport","Vélo occasion",17500,29990],
+    ["👟","Sport","Abon. salle 3 mois",10970,17990],
+    ["👟","Sport","Chaussures running",8990,14990],
+    ["🏥","Vétérinaire","Consultation + vaccin",8530,15990],
+    ["🔧","Garagiste","Révision complète",18900,32990],
+    ["🔧","Garagiste","Changement freins",22680,38990],
+    ["🏠","Décoration","Canapé d'angle",34990,49990],
+    ["🏠","Décoration","Table basse",12900,22990],
+    ["🏠","Décoration","Lampadaire design",7540,15990],
+  ]
+};
+
+const STORE_COLORS = {
+  "Boulangerie":"linear-gradient(135deg,#f9a825,#f57f17)",
+  "Café du Coin":"linear-gradient(135deg,#8d6e63,#5d4037)",
+  "Supermarché":"linear-gradient(135deg,#66bb6a,#388e3c)",
+  "Pharmacie":"linear-gradient(135deg,#4db6ac,#00897b)",
+  "Marché":"linear-gradient(135deg,#aed581,#689f38)",
+  "Boucherie":"linear-gradient(135deg,#e57373,#c62828)",
+  "Pizzeria":"linear-gradient(135deg,#ff8a65,#e64a19)",
+  "Restaurant":"linear-gradient(135deg,#ff8a65,#e64a19)",
+  "Cinéma":"linear-gradient(135deg,#64b5f6,#1565c0)",
+  "Librairie":"linear-gradient(135deg,#7986cb,#303f9f)",
+  "Fleuriste":"linear-gradient(135deg,#f48fb1,#c2185b)",
+  "Vêtements":"linear-gradient(135deg,#ce93d8,#7b1fa2)",
+  "Sport":"linear-gradient(135deg,#4dd0e1,#00838f)",
+  "Station-service":"linear-gradient(135deg,#ffb74d,#e65100)",
+  "Électroménager":"linear-gradient(135deg,#90a4ae,#37474f)",
+  "Boutique Mode":"linear-gradient(135deg,#ce93d8,#6a1b9a)",
+  "Bricolage":"linear-gradient(135deg,#a1887f,#4e342e)",
+  "Hypermarché":"linear-gradient(135deg,#81c784,#2e7d32)",
+  "Informatique":"linear-gradient(135deg,#78909c,#263238)",
+  "Vétérinaire":"linear-gradient(135deg,#80cbc4,#00695c)",
+  "Garagiste":"linear-gradient(135deg,#a1887f,#3e2723)",
+  "Décoration":"linear-gradient(135deg,#ffab91,#bf360c)",
+};
+
+const CONFIGS = {
+  easy:   { budget:20000, count:8,  penalty:100, attempts:3, step:50,  label:"Facile" },
+  medium: { budget:35000, count:10, penalty:300, attempts:2, step:5,   label:"Intermédiaire" },
+  hard:   { budget:150000,count:15, penalty:500, attempts:2, step:5,   label:"Expert" }
+};
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let S = {
+  screen:'menu', difficulty:null,
+  budget:0, initialBudget:0,
+  purchaseIndex:0, purchases:[],
+  composerItems:[], composerTotal:0,
+  attempts:0, maxAttempts:3,
+  correct:0, wrong:0, streak:0, bestStreak:0,
+  history:[], feedback:null, gameOver:false
+};
+
+// ════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════
+function fmt(cents){
+  const neg = cents < 0;
+  const abs = Math.abs(cents);
+  const e = Math.floor(abs/100);
+  const c = abs%100;
+  const s = e.toLocaleString('fr-FR') + ',' + (c<10?'0'+c:c) + ' €';
+  return neg ? '-'+s : s;
+}
+
+function randInt(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=randInt(0,i);[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+
+function genPrice(min,max,step){
+  const steps=Math.floor((max-min)/step);
+  return min+Math.floor(Math.random()*(steps+1))*step;
+}
+
+function pickPayment(price,difficulty){
+  const amounts=[200,500,1000,2000,5000,10000,15000,20000,25000,30000,35000,40000,50000,60000,75000,100000];
+  const minCh = difficulty==='easy'?50:10;
+  const valid=amounts.filter(a=>a-price>=minCh);
+  if(!valid.length) return Math.ceil((price+1000)/10000)*10000;
+  const opts=valid.slice(0,Math.min(difficulty==='hard'?2:3,valid.length));
+  return opts[randInt(0,opts.length-1)];
+}
+
+function describePayment(cents){
+  const d=[[50000,"billet","500 €"],[20000,"billet","200 €"],[10000,"billet","100 €"],[5000,"billet","50 €"],[2000,"billet","20 €"],[1000,"billet","10 €"],[500,"billet","5 €"],[200,"pièce","2 €"],[100,"pièce","1 €"],[50,"pièce","50 cts"]];
+  let rem=cents;const parts=[];
+  for(const[val,type,name]of d){const count=Math.floor(rem/val);if(count>0){parts.push(count>1?count+'×'+name:name);rem-=count*val}}
+  return parts.join(' + ');
+}
+
+function decomposeMoney(cents){
+  const d=[[20000,"200€"],[10000,"100€"],[5000,"50€"],[2000,"20€"],[1000,"10€"],[500,"5€"],[200,"2€"],[100,"1€"],[50,"50c"],[20,"20c"],[10,"10c"],[5,"5c"],[2,"2c"],[1,"1c"]];
+  let rem=cents;const parts=[];
+  for(const[val,name]of d){while(rem>=val){parts.push(name);rem-=val}}
+  return parts;
+}
+
+function denomLabel(val){
+  if(val>=100)return(val/100)+'€';
+  return val+'c';
+}
+
+function denomIsBill(val){return val>=500}
+function denomIsCoin(val){return val<500}
+function coinClass(val){
+  if(val<=5)return'coin-copper';
+  if(val<=50)return'coin-gold';
+  return'coin-bimetal';
+}
+function billClass(val){
+  if(val>=10000)return'bill-100';
+  if(val>=5000)return'bill-50';
+  if(val>=2000)return'bill-20';
+  if(val>=1000)return'bill-10';
+  return'bill-5';
+}
+
+// ════════════════════════════════════════════
+// GAME LOGIC
+// ════════════════════════════════════════════
+function startGame(diff){
+  const cfg=CONFIGS[diff];
+  const pool=POOLS[diff];
+  const indices=shuffle([...Array(pool.length).keys()]).slice(0,Math.min(cfg.count,pool.length));
+  const purchases=indices.map(i=>{
+    const[emoji,store,item,min,max]=pool[i];
+    const price=genPrice(min,max,cfg.step);
+    const payment=pickPayment(price,diff);
+    return{emoji,store,item,price,payment};
+  });
+  // Ensure total doesn't exceed budget by too much
+  let total=purchases.reduce((s,p)=>s+p.price,0);
+  const maxTotal=cfg.budget*0.85;
+  if(total>maxTotal){
+    const ratio=maxTotal/total;
+    purchases.forEach(p=>{
+      p.price=Math.round(p.price*ratio/cfg.step)*cfg.step;
+      if(p.price<cfg.step)p.price=cfg.step;
+      p.payment=pickPayment(p.price,diff);
+    });
+  }
+  S={
+    screen:'game',difficulty:diff,
+    budget:cfg.budget,initialBudget:cfg.budget,
+    purchaseIndex:0,purchases,
+    composerItems:[],composerTotal:0,
+    attempts:0,maxAttempts:cfg.attempts,
+    correct:0,wrong:0,streak:0,bestStreak:0,
+    history:[],feedback:null,gameOver:false
+  };
+  render();
+}
+
+function addDenom(val){
+  S.composerItems.push(val);
+  S.composerTotal+=val;
+  updateComposer();
+}
+
+function removeDenom(idx){
+  S.composerTotal-=S.composerItems[idx];
+  S.composerItems.splice(idx,1);
+  updateComposer();
+}
+
+function clearComposer(){
+  S.composerItems=[];S.composerTotal=0;
+  updateComposer();
+}
+
+function validateChange(){
+  const p=S.purchases[S.purchaseIndex];
+  const correctChange=p.payment-p.price;
+  if(S.composerTotal===correctChange){
+    // CORRECT
+    S.correct++;S.streak++;
+    if(S.streak>S.bestStreak)S.bestStreak=S.streak;
+    S.budget-=p.price;
+    S.history.push({correct:true,purchase:p,answer:S.composerTotal,expected:correctChange});
+    S.feedback={correct:true,purchase:p,answer:S.composerTotal,expected:correctChange,penalty:0};
+    if(S.budget<=0)S.gameOver=true;
+    render();
+    launchConfetti(12);
+  } else {
+    S.attempts++;
+    if(S.attempts>=S.maxAttempts){
+      // OUT OF ATTEMPTS
+      const penalty=CONFIGS[S.difficulty].penalty;
+      S.wrong++;S.streak=0;
+      S.budget-=p.price+penalty;
+      S.history.push({correct:false,purchase:p,answer:S.composerTotal,expected:correctChange});
+      S.feedback={correct:false,purchase:p,answer:S.composerTotal,expected:correctChange,penalty};
+      if(S.budget<=0)S.gameOver=true;
+      render();
+    } else {
+      // Wrong but can retry
+      const btn=document.getElementById('validateBtn');
+      if(btn){btn.classList.remove('shake');void btn.offsetWidth;btn.classList.add('shake')}
+      const ta=document.getElementById('totalAmount');
+      if(ta){ta.style.color='#e53935';setTimeout(()=>{if(ta)ta.style.color='';},600)}
+      const ai=document.getElementById('attemptsInfo');
+      if(ai)ai.textContent=`❌ Pas tout à fait ! Encore ${S.maxAttempts-S.attempts} essai${S.maxAttempts-S.attempts>1?'s':''}.`;
+    }
+  }
+}
+
+function nextPurchase(){
+  S.feedback=null;
+  S.purchaseIndex++;
+  S.attempts=0;
+  S.composerItems=[];S.composerTotal=0;
+  if(S.gameOver||S.purchaseIndex>=S.purchases.length){
+    S.screen='result';
+  }
+  render();
+}
+
+// ════════════════════════════════════════════
+// DENOMINATION SETS
+// ════════════════════════════════════════════
+function getDenoms(diff){
+  if(diff==='easy') return{
+    coins:[50,100,200],
+    bills:[500,1000,2000,5000]
+  };
+  if(diff==='medium') return{
+    coins:[5,10,20,50,100,200],
+    bills:[500,1000,2000,5000]
+  };
+  return{
+    coins:[1,2,5,10,20,50,100,200],
+    bills:[500,1000,2000,5000,10000,20000]
+  };
+}
+
+// ════════════════════════════════════════════
+// RENDERING
+// ════════════════════════════════════════════
+const app=document.getElementById('app');
+
+function render(){
+  if(S.screen==='menu')renderMenu();
+  else if(S.screen==='game')renderGame();
+  else if(S.screen==='result')renderResult();
+}
+
+function renderMenu(){
+  app.innerHTML=`
+    <div class="menu-title"><h1>💰 Le Défi Budget</h1></div>
+    <div class="menu-subtitle">Gère tes courses du mois !</div>
+    <div class="diff-card card-easy" onclick="startGame('easy')">
+      <h2>😊 Niveau Facile</h2>
+      <p>Montants ronds (€ ou ,50 €) • Budget 200 € • 8 achats<br>3 essais par question • Pénalité : 1 €</p>
+      <span class="diff-badge">Débutant</span>
+    </div>
+    <div class="diff-card card-medium" onclick="startGame('medium')">
+      <h2>🤔 Niveau Intermédiaire</h2>
+      <p>Montants avec centimes • Budget 350 € • 10 achats<br>2 essais par question • Pénalité : 3 €</p>
+      <span class="diff-badge">Confirmé</span>
+    </div>
+    <div class="diff-card card-hard" onclick="startGame('hard')">
+      <h2>🔥 Niveau Expert</h2>
+      <p>Grosses sommes (+200 €) • Budget 1 500 € • 15 achats<br>2 essais par question • Pénalité : 5 €</p>
+      <span class="diff-badge">Expert</span>
+    </div>
+    <div class="rules-box">
+      <h3>📖 Comment jouer ?</h3>
+      Tu as un budget pour le mois. À chaque achat, tu payes avec un billet et tu dois calculer le <strong>rendu monnaie</strong> en composant avec les pièces et billets.<br><br>
+      ✅ <strong>Bonne réponse</strong> → tu récupères ta monnaie<br>
+      ❌ <strong>Mauvaise réponse</strong> → tu perds une pénalité en plus<br>
+      🏆 <strong>Objectif</strong> → Finir le mois avec de l'argent !<br><br>
+      <em>Clique sur les pièces/billets pour composer le rendu, puis valide !</em>
+    </div>
+  `;
+}
+
+function renderGame(){
+  const p=S.purchases[S.purchaseIndex];
+  const cfg=CONFIGS[S.difficulty];
+  const budgetPct=Math.max(0,Math.min(100,S.budget/S.initialBudget*100));
+  const budgetColor=budgetPct>50?'#66bb6a':budgetPct>25?'#ffa726':'#e53935';
+  const change=p.payment-p.price;
+  const denoms=getDenoms(S.difficulty);
+
+  let dotsHTML='';
+  for(let i=0;i<S.purchases.length;i++){
+    const h=S.history[i];
+    let cls='dot';
+    if(i<S.history.length)cls+= h.correct?' correct':' wrong';
+    else if(i===S.purchaseIndex)cls+=' current';
+    dotsHTML+=`<div class="${cls}"></div>`;
+  }
+
+  const storeCol=STORE_COLORS[p.store]||'linear-gradient(135deg,#78909c,#455a64)';
+
+  let trayHTML='';
+  if(S.composerItems.length===0){
+    trayHTML='<div class="tray-empty">Cliquez sur les pièces/billets ci-dessus</div>';
+  } else {
+    S.composerItems.forEach((v,i)=>{
+      const cls=v>=500?'tray-bill':'tray-coin';
+      trayHTML+=`<div class="tray-item ${cls}" onclick="removeDenom(${i})" title="Cliquer pour retirer">${denomLabel(v)}</div>`;
+    });
+  }
+
+  let totalClass='total-zero';
+  if(S.composerTotal>0){
+    if(S.composerTotal===change)totalClass='total-ok';
+    else if(S.composerTotal>change)totalClass='total-over';
+    else totalClass='total-partial';
+  }
+
+  let coinsHTML=denoms.coins.map(v=>
+    `<button class="denom-btn coin-btn ${coinClass(v)}" onclick="addDenom(${v})">${denomLabel(v)}</button>`
+  ).join('');
+
+  let billsHTML=denoms.bills.map(v=>
+    `<button class="denom-btn bill-btn ${billClass(v)}" onclick="addDenom(${v})">${denomLabel(v)}</button>`
+  ).join('');
+
+  app.innerHTML=`
+    <div class="game-header">
+      <div class="budget-box">
+        <div class="budget-label">💰 Budget restant</div>
+        <div class="budget-amount" style="color:${budgetColor}">${fmt(S.budget)}</div>
+        <div class="budget-bar"><div class="budget-fill" style="width:${budgetPct}%;background:${budgetColor}"></div></div>
+      </div>
+      <div class="day-box">
+        <div class="day-label">Achat</div>
+        <div class="day-number">${S.purchaseIndex+1}/${S.purchases.length}</div>
+        ${S.streak>=2?`<div class="streak-badge">🔥 ${S.streak} d'affilée</div>`:''}
+      </div>
+    </div>
+    <div class="dots-row">${dotsHTML}</div>
+    <div class="store-card" style="background:${storeCol}">
+      <div class="store-emoji">${p.emoji}</div>
+      <div class="store-name">${p.store}</div>
+      <div class="store-item">Vous achetez : <strong>${p.item}</strong></div>
+      <div class="store-price">${fmt(p.price)}</div>
+      <div class="store-payment">Vous payez avec : ${describePayment(p.payment)}</div>
+    </div>
+    <div class="question-text">❓ Combien devez-vous recevoir ?</div>
+    <div class="composer-section">
+      <div class="denom-label">💰 Pièces</div>
+      <div class="denom-grid">${coinsHTML}</div>
+      <div class="denom-label">💵 Billets</div>
+      <div class="denom-grid">${billsHTML}</div>
+      <div class="tray" id="tray">${trayHTML}</div>
+      <div class="total-display">
+        <div class="total-label">Votre rendu monnaie :</div>
+        <div class="total-amount ${totalClass}" id="totalAmount">${S.composerTotal>0?fmt(S.composerTotal):'— €'}</div>
+      </div>
+      <div class="composer-buttons">
+        <button class="btn btn-clear" onclick="clearComposer()">🗑️ Effacer</button>
+        <button class="btn btn-validate" id="validateBtn" onclick="validateChange()" ${S.composerTotal===0?'disabled':''}>✅ Valider</button>
+      </div>
+      <div class="attempts-info" id="attemptsInfo">
+        ${S.attempts>0?`❌ Pas tout à fait ! Encore ${S.maxAttempts-S.attempts} essai${S.maxAttempts-S.attempts>1?'s':''}.`:`${S.maxAttempts} essai${S.maxAttempts>1?'s':''} possibles`}
+      </div>
+    </div>
+  `;
+
+  // Render feedback overlay if any
+  if(S.feedback) renderFeedback();
+}
+
+function updateComposer(){
+  const p=S.purchases[S.purchaseIndex];
+  const change=p.payment-p.price;
+
+  const tray=document.getElementById('tray');
+  if(tray){
+    if(S.composerItems.length===0){
+      tray.innerHTML='<div class="tray-empty">Cliquez sur les pièces/billets ci-dessus</div>';
+    } else {
+      tray.innerHTML=S.composerItems.map((v,i)=>{
+        const cls=v>=500?'tray-bill':'tray-coin';
+        return`<div class="tray-item ${cls}" onclick="removeDenom(${i})" title="Cliquer pour retirer">${denomLabel(v)}</div>`;
+      }).join('');
+    }
+  }
+
+  let totalClass='total-zero';
+  if(S.composerTotal>0){
+    if(S.composerTotal===change)totalClass='total-ok';
+    else if(S.composerTotal>change)totalClass='total-over';
+    else totalClass='total-partial';
+  }
+
+  const ta=document.getElementById('totalAmount');
+  if(ta){
+    ta.textContent=S.composerTotal>0?fmt(S.composerTotal):'— €';
+    ta.className='total-amount '+totalClass;
+  }
+
+  const vb=document.getElementById('validateBtn');
+  if(vb)vb.disabled=S.composerTotal===0;
+}
+
+function renderFeedback(){
+  const fb=S.feedback;
+  const change=fb.expected;
+  const decomp=decomposeMoney(change);
+  const decomStr=decomp.join(' + ');
+
+  const overlay=document.createElement('div');
+  overlay.className='feedback-overlay';
+  overlay.id='feedbackOverlay';
+  overlay.innerHTML=`
+    <div class="feedback-card">
+      <div class="fb-emoji">${fb.correct?'🎉':'😕'}</div>
+      <div class="fb-title" style="color:${fb.correct?'#43a047':'#e53935'}">${fb.correct?'Bravo, c\'est exact !':'Pas cette fois...'}</div>
+      <div class="fb-calc">
+        ${fmt(fb.purchase.payment)} − ${fmt(fb.purchase.price)} = <strong>${fmt(change)}</strong>
+      </div>
+      ${!fb.correct?`<div style="font-size:.88em;font-weight:600;color:#546e7a;margin-bottom:4px">Vous aviez répondu : ${fmt(fb.answer)}</div>`:''}
+      <div class="fb-decomp">Soit : ${decomStr}</div>
+      ${fb.penalty>0?`<div class="fb-penalty">⚠️ Pénalité : −${fmt(fb.penalty)}</div>`:''}
+      <div class="fb-budget">Budget restant : <strong style="color:${S.budget>0?'#43a047':'#e53935'}">${fmt(S.budget)}</strong></div>
+      ${S.gameOver&&S.budget<=0?'<div class="fb-penalty">💸 Budget épuisé !</div>':''}
+      <button class="btn-next" onclick="nextPurchase()">${
+        S.gameOver||S.purchaseIndex>=S.purchases.length-1?'Voir les résultats →':'Achat suivant →'
+      }</button>
+    </div>
+  `;
+  app.appendChild(overlay);
+}
+
+function renderResult(){
+  const won=S.budget>0;
+  const pct=Math.round(S.correct/S.purchases.length*100);
+  const totalSpent=S.initialBudget-S.budget;
+  const totalPenalties=S.wrong*CONFIGS[S.difficulty].penalty;
+
+  app.innerHTML=`
+    <div class="result-screen">
+      <div class="result-emoji">${won?'🏆🎉':'💸😅'}</div>
+      <div class="result-title" style="color:${won?'#43a047':'#e53935'}">${won?'Bravo, mois réussi !':'Budget épuisé !'}</div>
+      <div class="result-subtitle">${won?'Tu as bien géré ton budget ce mois-ci !':'Il faudra être plus précis la prochaine fois !'}</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" style="color:${S.budget>0?'#43a047':'#e53935'}">${fmt(S.budget)}</div>
+          <div class="stat-lbl">Budget final</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:#1e88e5">${S.correct}/${S.purchases.length}</div>
+          <div class="stat-lbl">Réponses correctes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:#ff9800">${pct}%</div>
+          <div class="stat-lbl">Taux de réussite</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:#e91e63">${S.bestStreak}🔥</div>
+          <div class="stat-lbl">Meilleure série</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:#546e7a">${fmt(totalSpent-totalPenalties)}</div>
+          <div class="stat-lbl">Total des achats</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" style="color:#e53935">${totalPenalties>0?'-'+fmt(totalPenalties):'0 €'}</div>
+          <div class="stat-lbl">Pénalités</div>
+        </div>
+      </div>
+      ${pct===100?'<div style="font-size:1.2em;font-weight:800;color:#43a047;margin-bottom:16px">🌟 SANS FAUTE ! Tu es un·e pro du rendu monnaie ! 🌟</div>':''}
+      ${pct>=80&&pct<100?'<div style="font-size:1em;font-weight:700;color:#1e88e5;margin-bottom:16px">Très bien ! Encore un effort pour le sans-faute 💪</div>':''}
+      ${pct<80&&pct>=50?'<div style="font-size:1em;font-weight:700;color:#ff9800;margin-bottom:16px">Pas mal ! Continue à t\'entraîner 📚</div>':''}
+      ${pct<50?'<div style="font-size:1em;font-weight:700;color:#e53935;margin-bottom:16px">Courage ! La pratique rend parfait 🔄</div>':''}
+      <button class="btn-replay" onclick="startGame('${S.difficulty}')">🔄 Rejouer (${CONFIGS[S.difficulty].label})</button><br>
+      <button class="btn-menu" onclick="S.screen='menu';render()">← Retour au menu</button>
+    </div>
+  `;
+  if(won)launchConfetti(40);
+}
+
+// ════════════════════════════════════════════
+// CONFETTI
+// ════════════════════════════════════════════
+function launchConfetti(count){
+  const c=document.getElementById('confetti');
+  const colors=['#e91e63','#9c27b0','#3f51b5','#00bcd4','#4caf50','#ff9800','#fdd835','#ff5722'];
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');
+    el.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${Math.random()*10+5}px;height:${Math.random()*10+5}px;background:${colors[randInt(0,colors.length-1)]};border-radius:${Math.random()>.5?'50%':'2px'};animation:confetti-fall ${Math.random()*2+2}s ease-out ${Math.random()*.5}s forwards;`;
+    c.appendChild(el);
+  }
+  setTimeout(()=>c.innerHTML='',5000);
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+render();
+</script>
+
+
+</body></html>
